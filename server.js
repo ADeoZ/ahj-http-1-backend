@@ -70,7 +70,7 @@ tickets.push(
 
 app.use(async (ctx) => {
   const { method, id } = ctx.request.query;
-  const { name, description, status } = ctx.request.body;
+  const { name, description, curid } = ctx.request.body;
   ctx.response.body = method;
 
   switch (method) {
@@ -99,10 +99,32 @@ app.use(async (ctx) => {
           id: maxId + 1,
           name,
           description,
-          status,
+          status: 0,
           created: Date.now(),
         },
       );
+      ctx.response.body = 'Ok';
+      ctx.response.status = 200;
+      return;
+    }
+    case 'removeTicket': {
+      const ticketId = tickets.findIndex((ticket) => ticket.id === +curid);
+      tickets.splice(ticketId, 1);
+      ctx.response.body = 'Ok';
+      ctx.response.status = 200;
+      return;
+    }
+    case 'ticketStatus': {
+      const ticket = tickets.find((ticket) => ticket.id === +curid);
+      ticket.status = 1 - ticket.status;
+      ctx.response.body = 'Ok';
+      ctx.response.status = 200;
+      return;
+    }
+    case 'editTicket': {
+      const ticket = tickets.find((ticket) => ticket.id === +curid);
+      ticket.name = name;
+      ticket.description = description;
       ctx.response.body = 'Ok';
       ctx.response.status = 200;
       return;
@@ -115,5 +137,4 @@ app.use(async (ctx) => {
 });
 
 const port = process.env.PORT || 7070;
-// http.createServer(app.callback()).listen(port);
 const server = http.createServer(app.callback()).listen(port)
